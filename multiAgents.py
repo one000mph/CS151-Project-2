@@ -66,15 +66,58 @@ class ReflexAgent(Agent):
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
+
+        print "\n\nactions is :", action
+        evalScore = 0
+        distToGhosts = []
+        ghostScared = 0
+        ghostThreat = 0
+        distanceToClosestFood = 0
+        if action == 'Stop':
+          return evalScore
+
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
+        foodList = newFood.asList()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # distToGhosts = [abs(ghostPos[0] - newPos[0])
+
+        # finding min ghost distance
+        for ghostState in newGhostStates:
+          ghostPos = ghostState.getPosition()
+          ghostScared == ghostState.scaredTimer
+          # print "scared? ", ghostScared
+          if (manhattanDistance(ghostPos, newPos) <= 2):
+          # if abs(ghostPos[0] - newPos[0]) <= 2 and abs(ghostPos[1] - newPos[1]) <=2:
+            if not ghostScared:
+              print "ghost is threatening!"
+              ghostThreat = 1
+              distToGhosts.append(manhattanDistance(ghostPos, newPos))
+        # finding min food distance
+        print "ghostThreat is ", ghostThreat
+        if ghostThreat:
+          evalScore = min(distToGhosts)
+        elif foodList:
+          distanceToClosestFood = min([manhattanDistance(newPos, food) for food in foodList])
+          print "distanceToClosestFood is ", distanceToClosestFood
+          if distToGhosts:
+            print "closest Ghost ", min(distToGhosts)
+            print "case 2"
+            evalScore = (min(distToGhosts))/distanceToClosestFood
+          elif distanceToClosestFood:
+            print "case 3"
+            evalScore = distanceToClosestFood
+        else:
+          if distanceToClosestFood == 0:
+            print "case 1"
+            evalScore = evalScore + 10
+        print "evalScore is ", evalScore
+        return evalScore
+        # return successorGameState.getScore()
 
 def scoreEvaluationFunction(currentGameState):
     """

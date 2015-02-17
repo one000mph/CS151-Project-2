@@ -168,17 +168,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
         currDepth = 0
         pacmanActions = gameState.getLegalActions()
         agentIndex = 0
-        numberOfTurns = 0
+        print "numAgents is", gameState.getNumAgents()
+        print "self.depth is", self.depth, "\n"
 
         actionScores = []
 
         for action in pacmanActions:
           if action != 'Stop':
+            # print "In getAction step", action
             successorState = gameState.generateSuccessor(agentIndex, action)
             value, action = (self.getValue(successorState, agentIndex, currDepth), action)
             # print "value, action is", value, action
+            # print "getting value, action", value, action
             actionScores.append((value, action))
-
+        # print "actionScores", actionScores
         bestValue, bestAction = max(actionScores)
         # print "bestValue, bestAction is\n", bestValue, bestAction
         return bestAction
@@ -187,49 +190,59 @@ class MinimaxAgent(MultiAgentSearchAgent):
       """
         Returns the value of the gameState using the minimax algorithm
       """
-      print "agentIndex is", agentIndex
-      # print "win", gameState.isWin()
-      if agentIndex % gameState.getNumAgents() == 0:
-        print "resetting agentIndex"
-        agentIndex = 0
-        if currDepth == self.depth:
-          print "exceeding depth", currDepth, "evaluating state"
-          return self.evaluationFunction(gameState)
+      # print "agentIndex is", agentIndex
+      # print "currDepth", currDepth
+      nextAgent = (agentIndex + 1)
+      print "nextAgent", nextAgent
+      if nextAgent == gameState.getNumAgents():
+        print "incrementing depth"
         currDepth += 1
+      nextAgent = nextAgent % gameState.getNumAgents()
+      # if agentIndex % gameState.getNumAgents() == 0:
+      #   print "resetting agentIndex"
+      #   # agentIndex = 0
+      if (currDepth == self.depth):
+        # print "exceeding depth", currDepth, "evaluating state"
+        return self.evaluationFunction(gameState)
         # print "incrementing currDepth", currDepth
-      if agentIndex == 0:
+      if gameState.isWin() or gameState.isLose():
+        # print "win case"
+        return self.evaluationFunction(gameState)
+      if nextAgent == 0:
+        # print "nextAgent == 0"
         maxValue = self.maxValue(gameState, agentIndex, currDepth)
-        print "maxValue for agent", agentIndex, "is", maxValue, "\n"
+        # print "maxValue for agent", agentIndex, "is", maxValue, "\n"
         return maxValue
-      if agentIndex > 0:
+      if nextAgent > 0:
+        # print "nextAgent > 0"
         minValue = self.minValue(gameState, agentIndex, currDepth)
-        print "minValue for agent", agentIndex, "is", minValue, "\n"
+        # print "minValue for agent", agentIndex, "is", minValue, "\n"
         return minValue
 
 
     def maxValue(self, gameState, agentIndex, currDepth):
-      print "maxValue running"
+      # print "\nmaxValue running"
       # print "win in max", gameState.isWin()
       value = -1*float('inf')
       actions = gameState.getLegalActions(agentIndex)
       for step in actions:
+        # print "\nstep", step
         successor = gameState.generateSuccessor(agentIndex, step)
-        print "win for successor", successor.isWin()
+        # print "win for successor", successor.isWin()
         value = max(value, self.getValue(successor, agentIndex + 1, currDepth))
-        print "step, value", step, value
+        # print "step, value", step, value
       return value
 
     def minValue(self, gameState, agentIndex, currDepth):
-      print "minValue running"
+      # print "\nminValue running"
       # print "win in min", gameState.isWin()
       value = float('inf')
       actions = gameState.getLegalActions(agentIndex)
-      if actions:
-        for step in actions:
-          successor = gameState.generateSuccessor(agentIndex, step)
-
-          value = min(value, self.getValue(successor, agentIndex + 1, currDepth))
-          print "step, value", step, value
+      for step in actions:
+        # print "step", step
+        successor = gameState.generateSuccessor(agentIndex, step)
+        value = min(value, self.getValue(successor, agentIndex + 1, currDepth))
+        # print "step, value", step, value
       return value
 
 

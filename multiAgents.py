@@ -67,7 +67,7 @@ class ReflexAgent(Agent):
         to create a masterful evaluation function.
         """
 
-        print "\n\nactions is :", action
+        # print "\n\nactions is :", action
         evalScore = 0
         distToGhosts = []
         ghostScared = 0
@@ -82,7 +82,7 @@ class ReflexAgent(Agent):
         newFood = successorGameState.getFood()
         foodList = newFood.asList()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        # newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         # distToGhosts = [abs(ghostPos[0] - newPos[0])
 
@@ -91,31 +91,25 @@ class ReflexAgent(Agent):
           ghostPos = ghostState.getPosition()
           ghostScared == ghostState.scaredTimer
           # print "scared? ", ghostScared
-          if (manhattanDistance(ghostPos, newPos) <= 2):
+          if (abs(newPos[0] - ghostPos[0]) <= 2 and abs(newPos[1] - ghostPos[1]) <=2):
           # if abs(ghostPos[0] - newPos[0]) <= 2 and abs(ghostPos[1] - newPos[1]) <=2:
             if not ghostScared:
-              print "ghost is threatening!"
+              # print "ghost is threatening!"
               ghostThreat = 1
               distToGhosts.append(manhattanDistance(ghostPos, newPos))
         # finding min food distance
-        print "ghostThreat is ", ghostThreat
+        # print "ghostThreat is ", ghostThreat
         if ghostThreat:
           evalScore = min(distToGhosts)
         elif foodList:
           distanceToClosestFood = min([manhattanDistance(newPos, food) for food in foodList])
-          print "distanceToClosestFood is ", distanceToClosestFood
-          if distToGhosts:
-            print "closest Ghost ", min(distToGhosts)
-            print "case 2"
-            evalScore = (min(distToGhosts))/distanceToClosestFood
-          elif distanceToClosestFood:
-            print "case 3"
-            evalScore = distanceToClosestFood
-        else:
-          if distanceToClosestFood == 0:
-            print "case 1"
-            evalScore = evalScore + 10
-        print "evalScore is ", evalScore
+          # print "distanceToClosestFood is ", distanceToClosestFood
+          if distanceToClosestFood:
+            evalScore += 1.0/distanceToClosestFood
+          else:
+            # print "case 1"
+            evalScore += 5
+        # print "evalScore is ", evalScore
         return evalScore
         # return successorGameState.getScore()
 
@@ -171,8 +165,75 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        currDepth = 0
+        pacmanActions = gameState.getLegalActions()
+        agentIndex = 0
+        numberOfTurns = 0
+
+        actionScores = []
+
+        for action in pacmanActions:
+          if action != 'Stop':
+            successorState = gameState.generateSuccessor(agentIndex, action)
+            value, action = (self.getValue(successorState, agentIndex, currDepth), action)
+            # print "value, action is", value, action
+            actionScores.append((value, action))
+
+        bestValue, bestAction = max(actionScores)
+        # print "bestValue, bestAction is\n", bestValue, bestAction
+        return bestAction
+
+    def getValue(self, gameState, agentIndex, currDepth):
+      """
+        Returns the value of the gameState using the minimax algorithm
+      """
+      print "agentIndex is", agentIndex
+      # print "win", gameState.isWin()
+      if agentIndex % gameState.getNumAgents() == 0:
+        print "resetting agentIndex"
+        agentIndex = 0
+        if currDepth == self.depth:
+          print "exceeding depth", currDepth, "evaluating state"
+          return self.evaluationFunction(gameState)
+        currDepth += 1
+        # print "incrementing currDepth", currDepth
+      if agentIndex == 0:
+        maxValue = self.maxValue(gameState, agentIndex, currDepth)
+        print "maxValue for agent", agentIndex, "is", maxValue, "\n"
+        return maxValue
+      if agentIndex > 0:
+        minValue = self.minValue(gameState, agentIndex, currDepth)
+        print "minValue for agent", agentIndex, "is", minValue, "\n"
+        return minValue
+
+
+    def maxValue(self, gameState, agentIndex, currDepth):
+      print "maxValue running"
+      # print "win in max", gameState.isWin()
+      value = -1*float('inf')
+      actions = gameState.getLegalActions(agentIndex)
+      for step in actions:
+        successor = gameState.generateSuccessor(agentIndex, step)
+        print "win for successor", successor.isWin()
+        value = max(value, self.getValue(successor, agentIndex + 1, currDepth))
+        print "step, value", step, value
+      return value
+
+    def minValue(self, gameState, agentIndex, currDepth):
+      print "minValue running"
+      # print "win in min", gameState.isWin()
+      value = float('inf')
+      actions = gameState.getLegalActions(agentIndex)
+      if actions:
+        for step in actions:
+          successor = gameState.generateSuccessor(agentIndex, step)
+
+          value = min(value, self.getValue(successor, agentIndex + 1, currDepth))
+          print "step, value", step, value
+      return value
+
+
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
